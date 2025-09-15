@@ -103,6 +103,11 @@ jobs:
           rm -rf allure-report
           allure generate allure-results --clean -o allure-report
 
+      - name: Ensure analytics store exists
+        run: |
+          mkdir -p analytics
+          test -f analytics/history.json || echo "[]" > analytics/history.json
+    
       - name: Build analytics history
         run: |
           node generate-analytics.js
@@ -110,6 +115,12 @@ jobs:
           cp -f analytics/history.json allure-report/analytics/history.json
         env:
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      
+      - name: Copy analytics dashboard into report
+        run: |
+          mkdir -p allure-report/analytics
+          cp -f analytics-dashboard/index.html allure-report/analytics/index.html
+          cp -f analytics-dashboard/viewer.js allure-report/analytics/viewer.js
 
       - name: Upload Allure report as artifact
         uses: actions/upload-artifact@v4
