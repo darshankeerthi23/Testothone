@@ -7,30 +7,35 @@ permissions:
   contents: write  # needed for gh-pages deploy
 
 env:
-  # Fallbacks; can be overridden by .env.ci or repo/env secrets
   NODE_VERSION: "20"
-  TEST_COMMAND: "npm run test:e2e"        # override in .env.ci
-  PLATFORM: "web"                         # override in .env.ci
+  TEST_COMMAND: "npm run test:e2e"
+  PLATFORM: "web"
   EMAIL_SUBJECT_PREFIX: "Playwright Automation"
-  PAGES_BASE_URL: ""                      # set to custom pages domain if any (e.g., https://acme.github.io/my-repo)
+  PAGES_BASE_URL: ""
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      # Load .env.ci if present (optional but recommended)
-      - name: Load .env.ci
-        uses: cardinalby/export-env-action@v2
-        with:
-          envFile: ".env.ci"
-        continue-on-error: true
+      # Load .env.ci without a marketplace action (portable)
+      - name: Load .env.ci (shell)
+        if: ${{ hashFiles('.env.ci') != '' }}
+        run: |
+          set -e
+          echo "Loading .env.ci..."
+          while IFS='=' read -r key value; do
+            # skip comments/empty lines
+            [[ -z "$key" ]] && continue
+            [[ "$key" =~ ^# ]] && continue
+            # export into GITHUB_ENV
+            echo "$key=${value}" >> "$GITHUB_ENV"
+          done < .env.ci
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
@@ -51,7 +56,7 @@ jobs:
 
       - name: Upload Allure results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: allure-results
           path: allure-results/
@@ -60,19 +65,23 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     if: always()
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Load .env.ci
-        uses: cardinalby/export-env-action@v2
-        with:
-          envFile: ".env.ci"
-        continue-on-error: true
+      - name: Load .env.ci (shell)
+        if: ${{ hashFiles('.env.ci') != '' }}
+        run: |
+          set -e
+          echo "Loading .env.ci..."
+          while IFS='=' read -r key value; do
+            [[ -z "$key" ]] && continue
+            [[ "$key" =~ ^# ]] && continue
+            echo "$key=${value}" >> "$GITHUB_ENV"
+          done < .env.ci
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
@@ -84,7 +93,7 @@ jobs:
         run: npm install -g allure-commandline
 
       - name: Download Allure results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: allure-results
           path: allure-results/
@@ -94,7 +103,6 @@ jobs:
           rm -rf allure-report
           allure generate allure-results --clean -o allure-report
 
-      # Optional: append analytics history and copy into report
       - name: Build analytics history
         run: |
           node generate-analytics.js
@@ -104,7 +112,7 @@ jobs:
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Upload Allure report as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: allure-report
           path: allure-report/
@@ -117,7 +125,6 @@ jobs:
           publish_branch: gh-pages
           keep_files: true
 
-      # Create human-friendly summary + Slack (optional) + email body file
       - name: Create Report Summary (Slack optional)
         if: always()
         run: |
@@ -129,7 +136,6 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
 
-      # Load the generated email-body.txt into env for email step
       - name: Export email body
         id: export_email
         run: |
@@ -137,21 +143,19 @@ jobs:
           cat email-body.txt >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - name: Set Email Subject with Date
-        id: set-email-subject
-        run: |
-          echo "email_subject=${{ env.EMAIL_SUBJECT_PREFIX }} - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
-
-      # Email (optional) – only runs if username & password are present
+      # Guard the email step WITHOUT referencing "secrets" in the if-expression
+      # We check only that EMAIL_BODY exists; if creds are missing the action will fail,
+      # so we soften with continue-on-error: true. If you want hard fail, remove that line.
       - name: Send email with report URL
-        if: ${{ env.EMAIL_BODY != '' && secrets.EMAIL_USERNAME != '' && secrets.EMAIL_PASSWORD != '' && secrets.EMAIL_RECIPIENT_LIST != '' }}
-        uses: dawidd6/action-send-mail@v3
+        if: ${{ env.EMAIL_BODY != '' }}
+        continue-on-error: true
+        uses: dawidd6/action-send-mail@v6
         with:
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ env.email_subject }}"
+          subject: "${{ env.EMAIL_SUBJECT_PREFIX }} - $(date '+%d-%b-%Y')"
           to: ${{ secrets.EMAIL_RECIPIENT_LIST }}
           cc: ${{ secrets.EMAIL_CC_LIST }}
           from: ${{ secrets.EMAIL_USERNAME }}
