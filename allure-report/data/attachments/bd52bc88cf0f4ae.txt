@@ -1,0 +1,34 @@
+[console] log error log -- cs -  The user is not authenticated
+[navigated] about:blank
+[navigated] https://konfhub.com/checkout/stepin-summit-2025
+[console] log error log -- cs -  The user is not authenticated
+[console] error Failed to load resource: the server responded with a status of 429 ()
+[console] warning Deprecation warning: value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), which is not reliable across all browsers and versions. Non RFC2822/ISO date formats are discouraged. Please refer to http://momentjs.com/guides/#/warnings/js-date/ for more info.
+Arguments: 
+[0] _isAMomentObject: true, _isUTC: true, _useUTC: true, _l: undefined, _i: undefined, _f: undefined, _strict: undefined, _locale: [object Object]
+Error
+    at t.createFromInputFallback (https://konfhub.com/_next/static/chunks/30e1f94b-c853ee7779fe8a60.js:1:3599)
+    at https://konfhub.com/_next/static/chunks/30e1f94b-c853ee7779fe8a60.js:1:24902
+    at ts (https://konfhub.com/_next/static/chunks/30e1f94b-c853ee7779fe8a60.js:1:24931)
+    at ti (https://konfhub.com/_next/static/chunks/30e1f94b-c853ee7779fe8a60.js:1:25499)
+    at t.h [as utc] (https://konfhub.com/_next/static/chunks/30e1f94b-c853ee7779fe8a60.js:1:1387)
+    at L (https://konfhub.com/_next/static/chunks/6717-b33986214b27de54.js:1:85593)
+    at ad (https://konfhub.com/_next/static/chunks/framework-0a784219a8529af0.js:1:58867)
+    at i (https://konfhub.com/_next/static/chunks/framework-0a784219a8529af0.js:1:119832)
+    at oO (https://konfhub.com/_next/static/chunks/framework-0a784219a8529af0.js:1:99485)
+    at https://konfhub.com/_next/static/chunks/framework-0a784219a8529af0.js:1:99352
+    at oF (https://konfhub.com/_next/static/chunks/framework-0a784219a8529af0.js:1:99359)
+    at oS (https://konfhub.com/_next/static/chunks/framework-0a784219a8529af0.js:1:94398)
+    at E (https://konfhub.com/_next/static/chunks/framework-0a784219a8529af0.js:1:137896)
+    at MessagePort.T (https://konfhub.com/_next/static/chunks/framework-0a784219a8529af0.js:1:138426)
+[navigated] https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Fkonfhub.com&title=Register%20for%20STeP-IN%20SUMMIT%202025&referrer=https%3A%2F%2Fstepinsummit.stepinforum.org%2F&muid=NA&sid=NA&version=6&preview=false&metaReferrerPolicy=strict-origin-when-cross-origin&__shared_params__[version]=v3
+[console] warning <link rel=preload> has an invalid `href` value
+[console] error Failed to load resource: the server responded with a status of 429 ()
+[navigated] https://m.stripe.network/inner.html#url=https%3A%2F%2Fkonfhub.com&title=Register%20for%20STeP-IN%20SUMMIT%202025&referrer=https%3A%2F%2Fstepinsummit.stepinforum.org%2F&muid=NA&sid=NA&version=6&preview=false&metaReferrerPolicy=strict-origin-when-cross-origin&__shared_params__[version]=v3
+[navigated] about:blank
+[console] error Failed to load resource: the server responded with a status of 400 ()
+[console] error Failed to load resource: the server responded with a status of 429 ()
+[console] error Failed to load resource: the server responded with a status of 400 ()
+[console] error Failed to load resource: the server responded with a status of 400 ()
+[console] error Failed to load resource: the server responded with a status of 403 ()
+[console] error Failed to load resource: the server responded with a status of 403 ()

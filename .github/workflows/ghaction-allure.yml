@@ -1,0 +1,158 @@
+name: Web Tests with Allure
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write  # needed for gh-pages deploy
+
+env:
+  # Fallbacks; can be overridden by .env.ci or repo/env secrets
+  NODE_VERSION: "20"
+  TEST_COMMAND: "npm run test:e2e"        # override in .env.ci
+  PLATFORM: "web"                         # override in .env.ci
+  EMAIL_SUBJECT_PREFIX: "Playwright Automation"
+  PAGES_BASE_URL: ""                      # set to custom pages domain if any (e.g., https://acme.github.io/my-repo)
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Load .env.ci if present (optional but recommended)
+      - name: Load .env.ci
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: ".env.ci"
+        continue-on-error: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install
+          sudo npx playwright install-deps
+
+      - name: Clean old Allure results and report
+        run: rm -rf allure-results allure-report analytics
+
+      - name: Run tests
+        run: ${{ env.TEST_COMMAND }}
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results/
+
+  host:
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Load .env.ci
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: ".env.ci"
+        continue-on-error: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Allure CLI
+        run: npm install -g allure-commandline
+
+      - name: Download Allure results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results/
+
+      - name: Generate Allure report
+        run: |
+          rm -rf allure-report
+          allure generate allure-results --clean -o allure-report
+
+      # Optional: append analytics history and copy into report
+      - name: Build analytics history
+        run: |
+          node generate-analytics.js
+          mkdir -p allure-report/analytics
+          cp -f analytics/history.json allure-report/analytics/history.json
+        env:
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Upload Allure report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
+
+      - name: Deploy Allure report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report/
+          publish_branch: gh-pages
+          keep_files: true
+
+      # Create human-friendly summary + Slack (optional) + email body file
+      - name: Create Report Summary (Slack optional)
+        if: always()
+        run: |
+          node create-summary.js --platform="${{ env.PLATFORM }}"
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          PAGES_BASE_URL: ${{ env.PAGES_BASE_URL }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
+      # Load the generated email-body.txt into env for email step
+      - name: Export email body
+        id: export_email
+        run: |
+          echo 'EMAIL_BODY<<EOF' >> $GITHUB_ENV
+          cat email-body.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Set Email Subject with Date
+        id: set-email-subject
+        run: |
+          echo "email_subject=${{ env.EMAIL_SUBJECT_PREFIX }} - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
+
+      # Email (optional) – only runs if username & password are present
+      - name: Send email with report URL
+        if: ${{ env.EMAIL_BODY != '' && secrets.EMAIL_USERNAME != '' && secrets.EMAIL_PASSWORD != '' && secrets.EMAIL_RECIPIENT_LIST != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "${{ env.email_subject }}"
+          to: ${{ secrets.EMAIL_RECIPIENT_LIST }}
+          cc: ${{ secrets.EMAIL_CC_LIST }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: ${{ env.EMAIL_BODY }}
