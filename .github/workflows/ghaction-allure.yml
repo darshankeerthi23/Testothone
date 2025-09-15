@@ -102,6 +102,8 @@ jobs:
         run: |
           rm -rf allure-report
           allure generate allure-results --clean -o allure-report
+          # ensure GitHub Pages doesn't run Jekyll (which can block assets)
+          touch allure-report/.nojekyll
 
       - name: Ensure analytics store exists
         run: |
@@ -121,6 +123,24 @@ jobs:
           mkdir -p allure-report/analytics
           cp -f analytics-dashboard/index.html allure-report/analytics/index.html
           cp -f analytics-dashboard/viewer.js allure-report/analytics/viewer.js
+
+      - name: Add Analytics link into Allure navbar
+        run: |
+          # copy the injector script
+          cp -f analytics-dashboard/inject-analytics.js allure-report/analytics/inject-analytics.js
+          # inject a script tag once into index.html (idempotent)
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = 'allure-report/index.html';
+          let html = fs.readFileSync(p, 'utf8');
+          if (!html.includes('analytics/inject-analytics.js')) {
+            html = html.replace('</body>', '  <script src="analytics/inject-analytics.js"></script>\n</body>');
+            fs.writeFileSync(p, html);
+            console.log('Injected analytics script into index.html');
+          } else {
+            console.log('Analytics script already present, skipping inject');
+          }
+          NODE
 
       - name: Upload Allure report as artifact
         uses: actions/upload-artifact@v4
