@@ -27,7 +27,6 @@ jobs:
           set -e
           echo "Loading .env.ci..."
           while IFS='=' read -r key value; do
-            # skip comments/empty lines
             [[ -z "$key" ]] && continue
             [[ "$key" =~ ^# ]] && continue
             # export into GITHUB_ENV
@@ -98,6 +97,37 @@ jobs:
           name: allure-results
           path: allure-results/
 
+      # --- NEW: fetch last published site (gh-pages) into _site ---
+      - name: Fetch previous published site
+        uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+          path: _site
+        continue-on-error: true
+
+      # --- NEW: bring forward Allure history so trend widgets work ---
+      - name: Restore Allure history from previous run (if any)
+        run: |
+          if [ -d "_site/history" ]; then
+            echo "Found previous history; restoring to allure-results/history"
+            mkdir -p allure-results/history
+            cp -R _site/history/* allure-results/history/ || true
+          else
+            echo "No previous history found (first run or empty gh-pages)"
+          fi
+
+      # --- NEW: prepare analytics/history.json from previous run ---
+      - name: Prepare analytics store from previous run (if any)
+        run: |
+          mkdir -p analytics
+          if [ -f "_site/analytics/history.json" ]; then
+            echo "Restoring analytics/history.json from gh-pages"
+            cp _site/analytics/history.json analytics/history.json
+          else
+            echo "Seeding empty analytics/history.json"
+            echo "[]" > analytics/history.json
+          fi
+
       - name: Generate Allure report
         run: |
           rm -rf allure-report
@@ -105,11 +135,6 @@ jobs:
           # ensure GitHub Pages doesn't run Jekyll (which can block assets)
           touch allure-report/.nojekyll
 
-      - name: Ensure analytics store exists
-        run: |
-          mkdir -p analytics
-          test -f analytics/history.json || echo "[]" > analytics/history.json
-    
       - name: Build analytics history
         run: |
           node generate-analytics.js
@@ -126,9 +151,7 @@ jobs:
 
       - name: Add Analytics link into Allure navbar
         run: |
-          # copy the injector script
           cp -f analytics-dashboard/inject-analytics.js allure-report/analytics/inject-analytics.js
-          # inject a script tag once into index.html (idempotent)
           node - <<'NODE'
           const fs = require('fs');
           const p = 'allure-report/index.html';
@@ -174,9 +197,6 @@ jobs:
           cat email-body.txt >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      # Guard the email step WITHOUT referencing "secrets" in the if-expression
-      # We check only that EMAIL_BODY exists; if creds are missing the action will fail,
-      # so we soften with continue-on-error: true. If you want hard fail, remove that line.
       - name: Send email with report URL
         if: ${{ env.EMAIL_BODY != '' }}
         continue-on-error: true
