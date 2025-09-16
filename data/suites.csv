@@ -1,2 +1,2 @@
 "DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","23827","fills KonfHub checkout form","chromium","Tue Sep 16 10:39:34 UTC 2025","passed","Tue Sep 16 10:39:58 UTC 2025","","test-1.spec.ts","",""
+"","22037","fills KonfHub checkout form","chromium","Tue Sep 16 11:33:48 UTC 2025","passed","Tue Sep 16 11:34:10 UTC 2025","","test-1.spec.ts","",""
