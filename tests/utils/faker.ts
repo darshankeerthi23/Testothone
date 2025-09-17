@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-
+export { faker };
 export type UserFormData = {
   name: string;
   emailOfficial: string;

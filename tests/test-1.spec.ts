@@ -29,16 +29,10 @@ test('fills KonfHub checkout form', async ({ page }) => {
   const user = makeUser();
   await checkout.fillFormTwoPhase(user);
 
-  // 4) Assertions (robust)
   await expect(checkout.nameInput).toHaveValue(user.name);
   await expect(checkout.officialEmailInput).toHaveValue(user.emailOfficial);
   await expect(checkout.personalEmailInput).toHaveValue(user.emailPersonal);
-
-  // Phone may be formatted (mask)
   await expect(checkout.phoneInput).toHaveValue(/(\+?91[\s-]*)?\d{10}$/);
- 
-
-  // These fields were observed to get cleared on re-render; assert not-empty
   await expect(checkout.designationInput).not.toBeEmpty();
   await expect(checkout.organisationInput).not.toBeEmpty();
   await expect(checkout.industryInput).not.toBeEmpty();
