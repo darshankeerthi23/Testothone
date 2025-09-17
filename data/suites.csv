@@ -1,2 +1,7 @@
 "DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","22037","fills KonfHub checkout form","chromium","Tue Sep 16 11:33:48 UTC 2025","passed","Tue Sep 16 11:34:10 UTC 2025","","test-1.spec.ts","",""
+"","5707","Test-5","chromium","Wed Sep 17 07:24:14 UTC 2025","passed","Wed Sep 17 07:24:19 UTC 2025","Ai test run","aiTest.spec.ts","",""
+"","5934","Test-1","chromium","Wed Sep 17 07:23:39 UTC 2025","failed","Wed Sep 17 07:23:45 UTC 2025","Ai test run","aiTest.spec.ts","",""
+"","3974","Test-4","chromium","Wed Sep 17 07:24:10 UTC 2025","passed","Wed Sep 17 07:24:14 UTC 2025","Ai test run","aiTest.spec.ts","",""
+"","4001","Test-6","chromium","Wed Sep 17 07:24:19 UTC 2025","passed","Wed Sep 17 07:24:23 UTC 2025","Ai test run","aiTest.spec.ts","",""
+"","5553","Book Now opens KonfHub in new tab and proceed","chromium","Wed Sep 17 07:23:58 UTC 2025","failed","Wed Sep 17 07:24:04 UTC 2025","Ai test run","aiTest.spec.ts","",""
+"","4805","Test-3","chromium","Wed Sep 17 07:24:05 UTC 2025","passed","Wed Sep 17 07:24:09 UTC 2025","Ai test run","aiTest.spec.ts","",""
