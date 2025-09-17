@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-     "Test-Chrome": "npx playwright test test-1.spec --project=chromium"
+     "Test-Chrome": "npx playwright test test-1.spec --project=chromium",
+     "Test": "npx playwright test aiTest.spec --project=chromium"
   },
   "keywords": [],
   "author": "",

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import {ai} from '@zerostep/playwright'
 import { beforeEach } from 'node:test';
 
-test.describe.skip('Ai test run', () => {
+test.describe('Ai test run', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('https://stepinsummit.stepinforum.org/conference-agenda/');
     });
@@ -15,7 +15,7 @@ test('Test-1 ', async ({ page }) => {
   });
 
 test('Book Now opens KonfHub in new tab and proceed', async ({ page }) => {
-  test.setTimeout(60000)
+  test.setTimeout(90000)
   await ai('Navigate to homepage',{page,test})
   await page.waitForURL('https://stepinsummit.stepinforum.org/')
 
@@ -36,8 +36,13 @@ test('Book Now opens KonfHub in new tab and proceed', async ({ page }) => {
   await ai('click on + 4 times',{page:newPage,test})
 
   await ai('click on Proceed',{page:newPage,test})
-
-  //await ai('Fill in the form with realistic values for name, official email, personal email address, phone number:9449348576, designation, organisation',{page:newPage, test})
+  //await newPage.waitForTimeout(300);
+  await ai('Fill in values for only name, official email address and personal email address, skip other fields',{page:newPage, test})
+  //await newPage.waitForTimeout(300);
+  await ai('Fill in the phone number starting with 9 and type in 9 more digits one by one',{page:newPage,test})
+  //await newPage.waitForTimeout(300);
+  await ai('Fill in values for Designation, Organisation, Industry, Address, City fields',{page:newPage, test})
+  await ai('Choose Friend from Referral Source',{page:newPage,test})
 });
 
 
